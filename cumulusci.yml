@@ -1,0 +1,145 @@
+minimum_cumulusci_version: '3.64.0'
+project:
+    name: GrantsManagement
+    package:
+        name: Grants Management Installer Demo
+        api_version: '55.0'
+    git:
+        default_branch: 'main'
+    source_format: sfdx
+    dependencies:
+        - github: 'https://github.com/SalesforceFoundation/Grants-Management-Installer'
+
+sources:
+    grants:
+        github: 'https://github.com/SalesforceFoundation/Grants-Management-Installer' 
+
+tasks:
+    robot:
+        options:
+            suites: robot/GrantsManagement/tests
+            options:
+                outputdir: robot/GrantsManagement/results
+
+    robot_testdoc:
+        options:
+            path: robot/GrantsManagement/tests
+            output: robot/GrantsManagement/doc/GrantsManagement_tests.html
+
+    run_tests:
+        options:
+            required_org_code_coverage_percent: 75
+
+plans:
+    install:
+        slug: install
+        title: Install Grants Management
+        tier: secondary
+        is_listed: True
+        preflight_message: "This will install Grants Management into your org."
+        post_install_message: "Thanks for installing Grants Management. Please visit the [Grants Management customer group](https://trailhead.salesforce.com/trailblazer-community/groups/0F94S000000GvrgSAC) on the Trailblazer Community for any questions about Grants Management."
+        error_message: "To get help with this error, go to [help.salesforce.com](https://help.salesforce.com/), find the Support & Services area and log a technical support ticket with Salesforce. Include “Grants Management” in the subject line and include in your comment the installation link shown here."
+        checks:
+            - when: "'.my.' not in org_config.instance_url"
+              action: error
+              message: "Please enable My Domain in your org prior to installing."
+            - when: "'PID_Customer_Community_Plus_Login' not in tasks.get_available_licenses()"
+              action: error
+              message: "Grants Management requires Customer Community Plus Login licenses. Please coordinate with your Salesforce account executive to be sure you have the correct licenses set up in your org."
+            - when: "not tasks.check_chatter_enabled()"
+              action: error
+              message: "Grants Management requires Chatter. Please enable Chatter in your org and try again."
+        steps:
+            1:
+                flow: grants:customer_org
+
+    customer_enablement_install:
+        slug: install-and-build-community
+        title: Install Grants Management and Build Community
+        tier: primary
+        is_listed: True
+        preflight_message: "This installs Grants Management into your org. The installer creates a Community with the Grantee Portal template and applies our recommended configurations."
+        post_install_message: "Thanks for installing Grants Management. Please visit the [Grants Management customer group](https://trailhead.salesforce.com/trailblazer-community/groups/0F94S000000GvrgSAC) on the Trailblazer Community for any questions about Grants Management."
+        error_message: "To get help with this error, go to [help.salesforce.com](https://help.salesforce.com/), find the Support & Services area and log a technical support ticket with Salesforce. Include “Grants Management” in the subject line and include in your comment the installation link shown here."
+        checks:
+            - when: "'.my.' not in org_config.instance_url"
+              action: error
+              message: "Please enable My Domain in your org prior to installing."
+            - when: "'PID_Customer_Community_Plus_Login' not in tasks.get_available_licenses()"
+              action: error
+              message: "Grants Management requires Customer Community Plus Login licenses. Please coordinate with your Salesforce account executive to be sure you have the correct licenses set up in your org."
+            - when: "'Network' not in tasks.check_sobjects_available()"
+              action: error
+              message: "Please ensure that Salesforce Communities is available in your org prior to installing."
+            - when: "not tasks.check_chatter_enabled()"
+              action: error
+              message: "Grants Management requires Chatter. Please enable Chatter in your org and try again."
+        steps:
+            1:
+                flow: grants:customer_org_full
+
+    upgrade:
+        slug: upgrade
+        title: Product Upgrade
+        tier: additional
+        is_listed: False
+        preflight_message: "This installer upgrades this package and any required dependencies to the latest version in your org. This installer isn't supported and has risks. Please don't run this installer unless you're aware of its specific use cases and considerations."
+        post_install_message: "Installation complete and package is on the latest version."
+        steps:
+            1:
+                task: grants:update_dependencies
+                options:
+                    security_type: PUSH
+                    packages_only: True
+            2:
+                task: grants:install_managed
+                options:
+                    security_type: PUSH
+
+    unpackaged_flows:
+        slug: unpackaged-flows
+        title: Install Grants Management Flows
+        tier: additional
+        is_listed: True
+        preflight_message: "Install or overwrite the selected unpackaged Grants Management flows in your org. After installation, you can access and activate earlier versions of previously-installed flows as needed. Be sure to create a backup of any changes before proceeding."
+        post_install_message: "Thanks for installing Grants Management flows. Please visit the [Grants Management customer group](https://trailhead.salesforce.com/trailblazer-community/groups/0F94S000000GvrgSAC) on the Trailblazer Community for any questions about Grants Management."
+        error_message: "To get help with this error, go to [help.salesforce.com](https://help.salesforce.com/), find the Support & Services area and log a technical support ticket with Salesforce. Include “Grants Management” in the subject line and include in your comment the installation link shown here."
+        checks:
+            - when: "not org_config.has_minimum_package_version('sfdo_grants', '1.17')"
+              action: error
+              message: "Grants Management version 1.17 is the minimum version required to install Grants Management flows. Please install or upgrade Grants Management and try again."
+        steps:
+            1:
+                task: grants:deploy_multi_stage_app_flow
+                ui_options:
+                    name: "Deploy Grants Management: Multi-Section Application Form (Sample) and subflow"
+                    is_required: False
+                    is_recommended: False
+            2:
+                task: grants:deploy_enhanced_application_flow
+                ui_options:
+                    name: "Deploy Enhanced Application (Sample) Flow"
+                    is_required: False
+                    is_recommended: False
+            3:
+                task: grants:deploy_funding_program_application_flow
+                ui_options:
+                    name: "Deploy Create Application Flow"
+                    is_required: False
+                    is_recommended: False
+            4:
+                task: grants:deploy_submit_application_flow
+                ui_options:
+                    name: "Deploy Submit Application Flow"
+                    is_required: False
+                    is_recommended: False
+            5:
+                task: grants:deploy_validate_ein_flow
+                ui_options:
+                    name: "Deploy Grants Management: Validate EIN (Sample) Flow"
+                    is_required: False
+                    is_recommended: Falsedeploy_validate_ein_flow
+                ui_options:
+                    name: "Deploy Grants Management: Validate EIN (Sample) Flow"
+                    is_required: False
+                    is_recommended: False
