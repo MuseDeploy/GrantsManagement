@@ -8,11 +8,11 @@ project:
         default_branch: 'main'
     source_format: sfdx
     dependencies:
-        - github: 'https://github.com/SalesforceFoundation/Grants-Management-Installer'
+        - github: 'https://github.com/SalesforceFoundation/Grants-Management-Installers'
 
 sources:
     grants:
-        github: 'https://github.com/SalesforceFoundation/Grants-Management-Installer' 
+        github: 'https://github.com/SalesforceFoundation/Grants-Management-Installers' 
 
 tasks:
     robot:
